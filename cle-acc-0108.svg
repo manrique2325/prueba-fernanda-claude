@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 440" width="440" height="440" role="img" aria-label="Paño de microfibra x4">
+  <rect width="440" height="440" fill="#fff4e5"/>
+  <circle cx="352" cy="88" r="66" fill="#f59f28" opacity=".13"/>
+  <circle cx="78" cy="368" r="52" fill="#b96f0c" opacity=".10"/>
+  <ellipse cx="220" cy="374" rx="118" ry="16" fill="#b96f0c" opacity=".14"/>
+  <rect x="128" y="168" width="184" height="120" rx="26" fill="#f59f28"/>
+  <rect x="128" y="168" width="184" height="46" rx="22" fill="#ffffff"/>
+  <circle cx="176" cy="252" r="10" fill="#ffffff" opacity=".35"/>
+  <circle cx="220" cy="262" r="8" fill="#ffffff" opacity=".3"/>
+  <circle cx="262" cy="248" r="11" fill="#ffffff" opacity=".28"/>
+  <text x="220" y="244" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#b96f0c">Paño de</text>
+  <text x="220" y="264" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#b96f0c">microfibra x4</text>
+  <text x="220" y="286" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" letter-spacing="1.6" fill="#f59f28">CLEANPRO</text>
+</svg>

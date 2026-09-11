@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 440" width="440" height="440" role="img" aria-label="Repuesto de mopa de microfibra">
+  <rect width="440" height="440" fill="#fdf0ec"/>
+  <circle cx="352" cy="88" r="66" fill="#d8543f" opacity=".13"/>
+  <circle cx="78" cy="368" r="52" fill="#9c3524" opacity=".10"/>
+  <ellipse cx="220" cy="374" rx="118" ry="16" fill="#9c3524" opacity=".14"/>
+  <rect x="208" y="70" width="24" height="200" rx="12" fill="#9c3524"/>
+  <rect x="150" y="262" width="140" height="42" rx="12" fill="#d8543f"/>
+  <path d="M154 304h132l-12 56h-108z" fill="#9c3524" opacity=".9"/>
+  <rect x="212" y="86" width="8" height="170" rx="4" fill="#ffffff" opacity=".28"/>
+  <text x="220" y="244" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#9c3524">Repuesto de mopa</text>
+  <text x="220" y="264" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#9c3524">de microfibra</text>
+  <text x="220" y="286" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" letter-spacing="1.6" fill="#d8543f">CLEANPRO</text>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" role="img" aria-label="Productos para pisos">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eef1fb"/>
+      <stop offset="100%" stop-color="#6c63c7" stop-opacity=".35"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#g)"/>
+  <circle cx="330" cy="66" r="70" fill="#6c63c7" opacity=".18"/>
+  <circle cx="64" cy="250" r="48" fill="#443c96" opacity=".14"/>
+  <text x="200" y="168" text-anchor="middle" font-size="76">🪣</text>
+</svg>
