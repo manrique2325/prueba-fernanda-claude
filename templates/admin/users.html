@@ -1,0 +1,82 @@
+{% extends "admin/base.html" %}
+{% block title %}Usuarios · Administración{% endblock %}
+{% block heading %}Usuarios{% endblock %}
+{% block subheading %}{{ pagination.total }} usuario{{ 's' if pagination.total != 1 }} registrado{{ 's' if pagination.total != 1 }}{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+  <form method="get" action="{{ url_for('admin.users') }}">
+    <input type="search" name="q" value="{{ term }}" placeholder="Buscar por nombre o email…">
+    <button class="btn btn--sm" type="submit">Buscar</button>
+    {% if term %}<a class="btn btn--sm btn--ghost" href="{{ url_for('admin.users') }}">Limpiar</a>{% endif %}
+  </form>
+</div>
+
+<div class="admin-card">
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Registro</th>
+          <th class="num">Pedidos</th>
+          <th class="num">Total comprado</th>
+          <th>Rol</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+          <tr>
+            <td>
+              <div class="cell-product">
+                <span class="avatar">{{ user.initials }}</span>
+                <div>
+                  <strong>{{ user.name }}</strong>
+                  <span>{{ user.email }}{% if user.phone %} · {{ user.phone }}{% endif %}</span>
+                </div>
+              </div>
+            </td>
+            <td>{{ user.created_at.strftime('%d/%m/%Y') }}</td>
+            <td class="num">{{ order_counts.get(user.id, 0) }}</td>
+            <td class="num"><strong>{{ spent.get(user.id, 0) | price }}</strong></td>
+            <td>
+              {% if user.id == current_user.id %}
+                <span class="badge badge--featured">Vos (admin)</span>
+              {% else %}
+                <form method="post" action="{{ url_for('admin.user_role', user_id=user.id) }}"
+                      data-confirm="¿Cambiar el rol de {{ user.name }}?">
+                  <label class="sr-only" for="role-{{ user.id }}">Rol de {{ user.name }}</label>
+                  <select class="status-select" id="role-{{ user.id }}" name="role" data-autosubmit>
+                    <option value="customer" {{ 'selected' if user.role == 'customer' }}>Cliente</option>
+                    <option value="admin" {{ 'selected' if user.role == 'admin' }}>Administrador</option>
+                  </select>
+                  <noscript><button class="btn btn--sm" type="submit">Guardar</button></noscript>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5">
+              <div class="empty-state">
+                <div class="empty-state__icon">👥</div>
+                <h3>No hay usuarios que coincidan</h3>
+                <p>Probá con otro nombre o email.</p>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagination.pages > 1 %}
+    <div class="admin-card__foot">{% include "partials/pagination.html" %}</div>
+  {% endif %}
+</div>
+
+<div class="alert alert--info" style="margin-top:1rem">
+  Los administradores tienen acceso total al panel. Por seguridad no podés cambiar tu propio rol ni ver
+  las contraseñas: se almacenan siempre hasheadas.
+</div>
+{% endblock %}

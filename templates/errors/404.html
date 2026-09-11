@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Página no encontrada · {{ store.name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="error-page">
+    <div class="error-page__code">404</div>
+    <h1>No encontramos esta página</h1>
+    <p style="color:var(--muted);max-width:48ch;margin-inline:auto">
+      El enlace puede estar roto o el producto que buscás ya no está disponible.
+      Probá con el buscador o volvé al catálogo.
+    </p>
+    <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-top:1.5rem">
+      <a class="btn btn--lg" href="{{ url_for('main.index') }}">Ir al inicio</a>
+      <a class="btn btn--lg btn--ghost" href="{{ url_for('main.products') }}">Ver productos</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Ingresar · {{ store.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1>Ingresá a tu cuenta</h1>
+      <p class="auth-card__sub">Accedé a tus pedidos, tu carrito y tus datos.</p>
+
+      <form method="post" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
+        <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" name="email" value="{{ email }}" required autocomplete="email" autofocus>
+        </div>
+        <div class="field">
+          <label for="password">Contraseña</label>
+          <input id="password" type="password" name="password" required autocomplete="current-password">
+        </div>
+        <button class="btn btn--lg btn--block" type="submit">Ingresar</button>
+      </form>
+
+      <p class="auth-alt">¿No tenés cuenta? <a href="{{ url_for('auth.register', next=request.args.get('next')) }}">Creá una gratis</a></p>
+
+      <div class="demo-box">
+        <strong>Cuentas de demostración</strong><br>
+        Cliente: <code>cliente@brillante.com</code> / <code>Cliente.2026!</code><br>
+        Admin: <code>admin@brillante.com</code> / <code>Admin.2026!</code>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

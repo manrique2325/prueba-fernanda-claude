@@ -1,0 +1,45 @@
+{# Tarjeta de producto reutilizable en home, listado y relacionados. #}
+<article class="product-card {{ 'is-out' if not product.in_stock }}">
+  <div class="product-card__media">
+    <a href="{{ url_for('main.product_detail', product_id=product.id) }}" aria-label="{{ product.name }}">
+      <img src="{{ url_for('static', filename=product.image) if product.image else url_for('static', filename='images/placeholder.svg') }}"
+           alt="{{ product.name }}" loading="lazy" width="440" height="440">
+    </a>
+    <div class="product-card__badges">
+      {% if not product.in_stock %}
+        <span class="badge badge--out">Sin stock</span>
+      {% else %}
+        {% if product.on_sale and product.discount %}<span class="badge badge--sale">-{{ product.discount }}%</span>{% endif %}
+        {% if product.is_new %}<span class="badge badge--new">Nuevo</span>{% endif %}
+        {% if product.low_stock %}<span class="badge badge--low">¡Últimas {{ product.stock }}!</span>{% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="product-card__body">
+    <span class="product-card__brand">{{ product.brand }}</span>
+    <h3 class="product-card__name">
+      <a href="{{ url_for('main.product_detail', product_id=product.id) }}">{{ product.name }}</a>
+    </h3>
+    {% if product.unit %}<span class="product-card__unit">{{ product.unit }}</span>{% endif %}
+
+    <div class="product-card__price">
+      <div class="price">
+        <span class="price__now">{{ product.price | price }}</span>
+        {% if product.old_price %}<span class="price__old">{{ product.old_price | price }}</span>{% endif %}
+      </div>
+      {% if product.discount %}<span class="price__off">{{ product.discount }}% de descuento</span>{% endif %}
+    </div>
+
+    <div class="product-card__actions">
+      {% if product.in_stock %}
+        <form action="{{ url_for('cart.add', product_id=product.id) }}" method="post" data-cart-add>
+          <input type="hidden" name="quantity" value="1">
+          <button class="btn btn--sm btn--block" type="submit">Agregar al carrito</button>
+        </form>
+      {% else %}
+        <a class="btn btn--sm btn--ghost btn--block" href="{{ url_for('main.product_detail', product_id=product.id) }}">Ver producto</a>
+      {% endif %}
+    </div>
+  </div>
+</article>

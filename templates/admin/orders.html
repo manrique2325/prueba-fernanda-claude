@@ -1,0 +1,85 @@
+{% extends "admin/base.html" %}
+{% block title %}Pedidos · Administración{% endblock %}
+{% block heading %}Pedidos{% endblock %}
+{% block subheading %}{{ pagination.total }} pedido{{ 's' if pagination.total != 1 }}{% if status %} con estado «{{ status }}»{% endif %}{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+  <form method="get" action="{{ url_for('admin.orders') }}">
+    <input type="search" name="q" value="{{ term }}" placeholder="Buscar por N° de pedido, cliente o email…">
+    {% if status %}<input type="hidden" name="estado" value="{{ status }}">{% endif %}
+    <button class="btn btn--sm" type="submit">Buscar</button>
+  </form>
+
+  <div class="spacer"></div>
+  <div class="filter-tabs">
+    <a class="filter-tab {{ 'is-active' if not status }}" href="{{ url_for('admin.orders', q=term or None) }}">Todos</a>
+    {% for item in statuses %}
+      <a class="filter-tab {{ 'is-active' if status == item }}" href="{{ url_for('admin.orders', estado=item, q=term or None) }}">{{ item | capitalize }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="admin-card">
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Pedido</th>
+          <th>Cliente</th>
+          <th>Fecha</th>
+          <th class="num">Productos</th>
+          <th class="num">Total</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+          <tr>
+            <td><a href="{{ url_for('admin.order_detail', order_id=order.id) }}" style="font-weight:700;color:var(--brand-dark)">{{ order.number }}</a></td>
+            <td>
+              <strong style="font-size:.88rem">{{ order.customer_name }}</strong>
+              <div class="admin-topbar__sub">{{ order.customer_email }}</div>
+            </td>
+            <td>{{ order.created_at.strftime('%d/%m/%Y') }}<div class="admin-topbar__sub">{{ order.created_at.strftime('%H:%M') }}</div></td>
+            <td class="num">{{ order.total_units }}</td>
+            <td class="num"><strong>{{ order.total | price }}</strong></td>
+            <td>
+              <form method="post" action="{{ url_for('admin.order_status', order_id=order.id) }}">
+                <label class="sr-only" for="status-{{ order.id }}">Estado del pedido {{ order.number }}</label>
+                <select class="status-select" id="status-{{ order.id }}" name="status" data-autosubmit>
+                  {% for item in statuses %}
+                    <option value="{{ item }}" {{ 'selected' if order.status == item }}>{{ item | capitalize }}</option>
+                  {% endfor %}
+                </select>
+                <noscript><button class="btn btn--sm" type="submit">Guardar</button></noscript>
+              </form>
+            </td>
+            <td class="num"><a class="btn btn--sm btn--ghost" href="{{ url_for('admin.order_detail', order_id=order.id) }}">Ver detalle</a></td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <div class="empty-state__icon">🧾</div>
+                <h3>No hay pedidos que coincidan</h3>
+                <p>Probá quitando el filtro o buscando otro número de pedido.</p>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagination.pages > 1 %}
+    <div class="admin-card__foot">{% include "partials/pagination.html" %}</div>
+  {% endif %}
+</div>
+
+<div class="alert alert--warn" style="margin-top:1rem">
+  Al pasar un pedido a <strong>cancelado</strong> se devuelve automáticamente el stock de sus productos.
+  Si se lo reactiva, el stock vuelve a descontarse.
+</div>
+{% endblock %}

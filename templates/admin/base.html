@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Administración · {{ store.name }}{% endblock %}</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="{{ url_for('static', filename='images/favicon.svg') }}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="admin-body">
+<div class="admin-layout">
+
+  <aside class="admin-sidebar">
+    <a class="logo" href="{{ url_for('admin.dashboard') }}">
+      <span class="logo__mark" aria-hidden="true">✦</span>
+      <span class="logo__text">{{ store.name }}<small>Admin</small></span>
+    </a>
+
+    <span class="admin-sidebar__label">General</span>
+    <a class="admin-nav-link {{ 'is-active' if request.endpoint == 'admin.dashboard' }}" href="{{ url_for('admin.dashboard') }}">
+      <span aria-hidden="true">📊</span> Dashboard
+    </a>
+
+    <span class="admin-sidebar__label">Catálogo</span>
+    <a class="admin-nav-link {{ 'is-active' if request.endpoint in ('admin.products', 'admin.product_new', 'admin.product_edit') }}" href="{{ url_for('admin.products') }}">
+      <span aria-hidden="true">📦</span> Productos
+    </a>
+    <a class="admin-nav-link {{ 'is-active' if request.endpoint == 'admin.categories' }}" href="{{ url_for('admin.categories') }}">
+      <span aria-hidden="true">🗂️</span> Categorías
+    </a>
+
+    <span class="admin-sidebar__label">Ventas</span>
+    <a class="admin-nav-link {{ 'is-active' if request.endpoint in ('admin.orders', 'admin.order_detail') }}" href="{{ url_for('admin.orders') }}">
+      <span aria-hidden="true">🧾</span> Pedidos
+    </a>
+    <a class="admin-nav-link {{ 'is-active' if request.endpoint == 'admin.users' }}" href="{{ url_for('admin.users') }}">
+      <span aria-hidden="true">👥</span> Usuarios
+    </a>
+
+    <div class="admin-sidebar__foot">
+      <a class="admin-nav-link" href="{{ url_for('main.index') }}"><span aria-hidden="true">🏬</span> Ver tienda</a>
+      <form action="{{ url_for('auth.logout') }}" method="post">
+        <button class="admin-nav-link" type="submit" style="width:100%;background:none;border:0;cursor:pointer;text-align:left;color:inherit;font:inherit">
+          <span aria-hidden="true">🚪</span> Cerrar sesión
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div>
+        <h1>{% block heading %}Panel{% endblock %}</h1>
+        <span class="admin-topbar__sub">{% block subheading %}{% endblock %}</span>
+      </div>
+      <div class="admin-topbar__actions">
+        {% block topbar_actions %}{% endblock %}
+        <span class="avatar" title="{{ current_user.email }}">{{ current_user.initials }}</span>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="flash-data" hidden>
+      {% for category, message in messages %}
+        <span data-flash data-category="{{ category }}" data-message="{{ message }}"></span>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

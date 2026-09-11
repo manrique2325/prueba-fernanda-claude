@@ -1,0 +1,140 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Editar' if product else 'Nuevo' }} producto · Administración{% endblock %}
+{% block heading %}{{ 'Editar producto' if product else 'Nuevo producto' }}{% endblock %}
+{% block subheading %}{% if product %}{{ product.sku }} · creado el {{ product.created_at.strftime('%d/%m/%Y') }}{% else %}Completá los datos del producto{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+  <a class="btn btn--sm btn--ghost" href="{{ url_for('admin.products') }}">← Volver al listado</a>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+  <div class="form-layout">
+    <!-- ------------------------------------------------------ principal -- -->
+    <div class="admin-card">
+      <div class="admin-card__body">
+        <div class="form-section">
+          <h3>Información general</h3>
+          <div class="form-grid">
+            <div class="field col-full">
+              <label for="name">Nombre del producto *</label>
+              <input id="name" name="name" value="{{ form.name or '' }}" required minlength="3" maxlength="200">
+            </div>
+            <div class="field">
+              <label for="brand">Marca *</label>
+              <input id="brand" name="brand" value="{{ form.brand or '' }}" required maxlength="120" list="brands">
+              <datalist id="brands">
+                {% for item in brands %}<option value="{{ item }}"></option>{% endfor %}
+              </datalist>
+            </div>
+            <div class="field">
+              <label for="sku">SKU {% if not product %}(opcional, se genera solo){% endif %}</label>
+              <input id="sku" name="sku" value="{{ form.sku or '' }}" maxlength="40" placeholder="BRI-HOG-0001">
+            </div>
+            <div class="field">
+              <label for="category_id">Categoría *</label>
+              <select id="category_id" name="category_id" required>
+                <option value="">Seleccionar…</option>
+                {% for category in categories %}
+                  <option value="{{ category.id }}" {{ 'selected' if form.category_id == category.id }}>{{ category.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label for="subcategory">Subcategoría</label>
+              <input id="subcategory" name="subcategory" value="{{ form.subcategory or '' }}" maxlength="120" placeholder="Multiuso, Detergentes…">
+            </div>
+            <div class="field col-full">
+              <label for="unit">Presentación</label>
+              <input id="unit" name="unit" value="{{ form.unit or '' }}" maxlength="40" placeholder="750 ml, 3 kg, 4 un.">
+            </div>
+            <div class="field col-full">
+              <label for="description">Descripción *</label>
+              <textarea id="description" name="description" required minlength="10" style="min-height:130px">{{ form.description or '' }}</textarea>
+              <span class="field-hint">Se muestra en la página del producto. Mínimo 10 caracteres.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Precio y stock</h3>
+          <div class="form-grid">
+            <div class="field">
+              <label for="price">Precio de venta *</label>
+              <input id="price" type="number" name="price" value="{{ form.price or '' }}" required min="0.01" step="0.01">
+            </div>
+            <div class="field">
+              <label for="old_price">Precio anterior (tachado)</label>
+              <input id="old_price" type="number" name="old_price" value="{{ form.old_price or '' }}" min="0" step="0.01">
+              <span class="field-hint">Si es mayor al precio de venta, el producto pasa a oferta y el % se calcula solo.</span>
+            </div>
+            <div class="field col-full">
+              <label for="stock">Stock disponible *</label>
+              <input id="stock" type="number" name="stock" value="{{ form.stock if form.stock is not none else 0 }}" required min="0" step="1">
+              <span class="field-hint">Con stock 0 el producto se muestra como «Sin stock» y no puede comprarse.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section" style="margin-bottom:0">
+          <h3>Imagen</h3>
+          <div class="field">
+            <label for="image">Ruta de la imagen (relativa a /static)</label>
+            <input id="image" name="image" value="{{ form.image or '' }}" maxlength="255" placeholder="images/products/mi-producto.svg">
+            <span class="field-hint">
+              Si lo dejás vacío se genera automáticamente una imagen SVG para el producto.
+              También podés copiar un archivo a <code>app/static/images/products/</code> y escribir su ruta acá.
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- -------------------------------------------------------- lateral -- -->
+    <div>
+      <div class="admin-card" style="margin-bottom:1.25rem">
+        <div class="admin-card__head"><h3>Vista previa</h3></div>
+        <div class="admin-card__body">
+          <div class="image-preview">
+            {% if product and product.image %}
+              <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}">
+            {% else %}
+              <span style="color:var(--muted);font-size:.82rem;text-align:center;padding:1rem">
+                La imagen se genera al guardar
+              </span>
+            {% endif %}
+          </div>
+          {% if product %}
+            <a class="btn btn--sm btn--ghost btn--block" href="{{ url_for('main.product_detail', product_id=product.id) }}" target="_blank">Ver en la tienda ↗</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="admin-card" style="margin-bottom:1.25rem">
+        <div class="admin-card__head"><h3>Visibilidad</h3></div>
+        <div class="admin-card__body" style="padding-top:.25rem">
+          <label class="switch-row">
+            <input type="checkbox" name="active" {{ 'checked' if form.active }}>
+            <span><strong>Producto activo</strong><span>Visible en la tienda y en las búsquedas.</span></span>
+          </label>
+          <label class="switch-row">
+            <input type="checkbox" name="featured" {{ 'checked' if form.featured }}>
+            <span><strong>Destacado</strong><span>Aparece en la sección de destacados del inicio.</span></span>
+          </label>
+          <div class="switch-row">
+            <span style="font-size:1.05rem">🏷️</span>
+            <span><strong>Oferta</strong><span>Se activa automáticamente al cargar un precio anterior mayor al precio de venta.</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card__body">
+          <button class="btn btn--lg btn--block" type="submit">{{ 'Guardar cambios' if product else 'Crear producto' }}</button>
+          <a class="btn btn--ghost btn--block" href="{{ url_for('admin.products') }}" style="margin-top:.5rem">Cancelar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

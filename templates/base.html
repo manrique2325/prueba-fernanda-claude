@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ store.name }} · {{ store.tagline }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}{{ store.name }}: productos de limpieza para el hogar, la cocina, el baño y uso profesional. Envío en 24/48 h.{% endblock %}">
+  <link rel="icon" href="{{ url_for('static', filename='images/favicon.svg') }}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+<a href="#main" class="sr-only">Saltar al contenido</a>
+
+<header class="site-header">
+  <div class="header-top">
+    <div class="container">
+      <span>🚚 Envío gratis en compras superiores a {{ store.free_shipping | price }}</span>
+      <nav class="header-top__links" aria-label="Enlaces de ayuda">
+        <a href="{{ url_for('main.shipping_info') }}">Envíos</a>
+        <a href="{{ url_for('main.contact') }}">Contacto</a>
+        <a href="{{ url_for('main.about') }}">Nosotros</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="header-main">
+    <div class="container">
+      <a class="logo" href="{{ url_for('main.index') }}">
+        <span class="logo__mark" aria-hidden="true">✦</span>
+        <span class="logo__text">{{ store.name }}<small>Limpieza</small></span>
+      </a>
+
+      <div class="search" id="search-wrap">
+        <form class="search__form" id="search-form" action="{{ url_for('main.search') }}" method="get" role="search" autocomplete="off">
+          <label class="sr-only" for="search-input">Buscar productos</label>
+          <input class="search__input" id="search-input" type="search" name="q"
+                 placeholder="Buscar detergente, lavandina, papel…" value="{{ request.args.get('q', '') }}">
+          <button class="search__btn" type="submit" aria-label="Buscar">🔍</button>
+        </form>
+        <div class="suggestions" id="suggestions" hidden></div>
+      </div>
+
+      <div class="header-actions">
+        {% if current_user %}
+          <div class="user-menu" id="user-menu">
+            <button class="header-action" data-menu-trigger aria-expanded="false" aria-haspopup="true">
+              <span class="avatar">{{ current_user.initials }}</span>
+              <span class="header-action__label">{{ current_user.name.split()[0] }}<small>Mi cuenta</small></span>
+            </button>
+            <div class="user-menu__panel" data-menu-panel hidden>
+              <div class="user-menu__head">
+                <strong>{{ current_user.name }}</strong>
+                <span>{{ current_user.email }}</span>
+              </div>
+              <a href="{{ url_for('auth.profile') }}">👤 Mi perfil</a>
+              <a href="{{ url_for('orders.my_orders') }}">📦 Mis pedidos</a>
+              {% if current_user.is_admin %}
+                <a href="{{ url_for('admin.dashboard') }}">⚙️ Panel de administración</a>
+              {% endif %}
+              <form action="{{ url_for('auth.logout') }}" method="post">
+                <button type="submit">🚪 Cerrar sesión</button>
+              </form>
+            </div>
+          </div>
+        {% else %}
+          <a class="header-action" href="{{ url_for('auth.login') }}">
+            <span aria-hidden="true">👤</span>
+            <span class="header-action__label">Ingresar<small>o registrate</small></span>
+          </a>
+        {% endif %}
+
+        <a class="header-action header-action--cart" href="{{ url_for('cart.view') }}" aria-label="Ver carrito">
+          <span aria-hidden="true">🛒</span>
+          <span class="header-action__label">Carrito<small id="cart-total-label">{{ cart_summary.products_total | price }}</small></span>
+          <span class="cart-badge" id="cart-count" {% if not cart_summary.units %}hidden{% endif %}>{{ cart_summary.units }}</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <nav class="category-nav" aria-label="Categorías">
+    <div class="container">
+      <a class="nav-all" href="{{ url_for('main.products') }}"><span aria-hidden="true">☰</span> Todos los productos</a>
+      {% for item in nav_categories %}
+        <a href="{{ url_for('main.category', slug=item.slug) }}"
+           class="{{ 'is-active' if category is defined and category and category.id == item.id }}">{{ item.name }}</a>
+      {% endfor %}
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="logo" href="{{ url_for('main.index') }}">
+          <span class="logo__mark" aria-hidden="true">✦</span>
+          <span class="logo__text">{{ store.name }}</span>
+        </a>
+        <p>{{ store.tagline }}. Productos de limpieza para el hogar y la industria, con envío a todo el país.</p>
+        <div class="social" aria-label="Redes sociales">
+          <a href="#" aria-label="Instagram">📷</a>
+          <a href="#" aria-label="Facebook">👍</a>
+          <a href="#" aria-label="X">✖</a>
+          <a href="#" aria-label="YouTube">▶</a>
+        </div>
+      </div>
+
+      <div>
+        <h4>Categorías</h4>
+        <ul>
+          {% for item in nav_categories[:6] %}
+            <li><a href="{{ url_for('main.category', slug=item.slug) }}">{{ item.name }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div>
+        <h4>Ayuda</h4>
+        <ul>
+          <li><a href="{{ url_for('main.shipping_info') }}">Envíos y entregas</a></li>
+          <li><a href="{{ url_for('main.contact') }}">Contacto</a></li>
+          <li><a href="{{ url_for('main.about') }}">Sobre nosotros</a></li>
+          <li><a href="{{ url_for('orders.my_orders') }}">Seguimiento de pedidos</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Contacto</h4>
+        <ul>
+          <li>📧 {{ store.email }}</li>
+          <li>📞 {{ store.phone }}</li>
+          <li>📍 {{ store.address }}</li>
+          <li>🕘 Lun a Vie de 9 a 18 h</li>
+        </ul>
+        <h4 style="margin-top:1.25rem">Medios de pago</h4>
+        <div class="payments">
+          <span>Visa</span><span>Mastercard</span><span>Transferencia</span><span>Efectivo</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© {{ now_year }} {{ store.name }}. Tienda de demostración: los productos y marcas son ficticios.</span>
+      <span>Envíos a todo el país · Compra protegida</span>
+    </div>
+  </div>
+</footer>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<button class="to-top" id="to-top" aria-label="Volver arriba">↑</button>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="flash-data" hidden>
+      {% for category, message in messages %}
+        <span data-flash data-category="{{ category }}" data-message="{{ message }}"></span>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

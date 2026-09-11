@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Mi carrito · {{ store.name }}{% endblock %}
+
+{% block content %}
+<div class="container" id="cart-page">
+  <nav class="breadcrumbs" aria-label="Ruta de navegación">
+    <a href="{{ url_for('main.index') }}">Inicio</a> <span>/</span>
+    <span aria-current="page">Carrito</span>
+  </nav>
+
+  {% if cart and cart.items %}
+  <div class="cart-layout">
+    <section class="panel">
+      <div class="panel__head">
+        <h1 style="font-size:1.25rem;margin:0">Mi carrito ({{ summary.units }} {{ 'producto' if summary.units == 1 else 'productos' }})</h1>
+        <form action="{{ url_for('cart.clear') }}" method="post" data-confirm="¿Seguro que querés vaciar el carrito?">
+          <button class="link-danger" type="submit">Vaciar carrito</button>
+        </form>
+      </div>
+
+      {% for item in cart.items %}
+        <article class="cart-item" data-cart-line="{{ url_for('cart.update', product_id=item.product.id) }}">
+          <a href="{{ url_for('main.product_detail', product_id=item.product.id) }}">
+            <img class="cart-item__img" src="{{ url_for('static', filename=item.product.image) if item.product.image else url_for('static', filename='images/placeholder.svg') }}"
+                 alt="{{ item.product.name }}" loading="lazy">
+          </a>
+
+          <div>
+            <a class="cart-item__name" href="{{ url_for('main.product_detail', product_id=item.product.id) }}">{{ item.product.name }}</a>
+            <div class="cart-item__meta">
+              {{ item.product.brand }}{% if item.product.unit %} · {{ item.product.unit }}{% endif %} · SKU {{ item.product.sku }}
+            </div>
+            {% if item.product.stock <= 5 %}
+              <div class="cart-item__meta" style="color:var(--warn);font-weight:600">Quedan {{ item.product.stock }} unidades</div>
+            {% endif %}
+
+            <div class="cart-item__controls">
+              <div class="qty qty--sm">
+                <button type="button" data-qty-step="-1" aria-label="Quitar una unidad">−</button>
+                <label class="sr-only" for="qty-{{ item.id }}">Cantidad de {{ item.product.name }}</label>
+                <input id="qty-{{ item.id }}" type="number" name="quantity" value="{{ item.quantity }}"
+                       min="1" max="{{ item.product.stock }}" inputmode="numeric">
+                <button type="button" data-qty-step="1" aria-label="Agregar una unidad">+</button>
+              </div>
+              <button class="link-danger" type="button" data-cart-remove="{{ url_for('cart.remove', product_id=item.product.id) }}">Eliminar</button>
+            </div>
+          </div>
+
+          <div class="cart-item__total">
+            {{ item.line_total | price }}
+            <span class="cart-item__unit">{{ item.product.price | price }} c/u</span>
+          </div>
+        </article>
+      {% endfor %}
+
+      <div class="panel__foot">
+        <a class="btn btn--ghost" href="{{ url_for('main.products') }}">← Seguir comprando</a>
+      </div>
+    </section>
+
+    <!-- --------------------------------------------------------- resumen -- -->
+    <aside class="panel summary">
+      <div class="panel__head"><h2 style="font-size:1.05rem;margin:0">Resumen de compra</h2></div>
+      <div class="panel__body">
+        <div class="summary__row">
+          <span>Productos ({{ summary.units }})</span>
+          <span>{{ summary.subtotal | price }}</span>
+        </div>
+        {% if summary.discount > 0 %}
+          <div class="summary__row summary__row--discount">
+            <span>Descuentos</span>
+            <span>− {{ summary.discount | price }}</span>
+          </div>
+        {% endif %}
+        <div class="summary__row">
+          <span>Envío</span>
+          <span>{% if summary.free_shipping %}<strong style="color:var(--ok)">Gratis</strong>{% else %}{{ summary.shipping | price }}{% endif %}</span>
+        </div>
+
+        {% if not summary.free_shipping %}
+          <div style="margin-top:.75rem">
+            <div class="progress">
+              <span style="width: {{ ((summary.products_total / store.free_shipping) * 100) | round | int }}%"></span>
+            </div>
+            <p class="field-hint" style="margin:0">Te faltan <strong>{{ summary.missing_for_free | price }}</strong> para el envío gratis.</p>
+          </div>
+        {% else %}
+          <p class="field-hint" style="margin:.5rem 0 0;color:var(--ok)">🎉 ¡Tenés envío gratis!</p>
+        {% endif %}
+
+        <div class="summary__total">
+          <span>Total</span>
+          <span>{{ summary.total | price }}</span>
+        </div>
+
+        <a class="btn btn--lg btn--block" href="{{ url_for('orders.checkout') }}" style="margin-top:1rem">Finalizar compra</a>
+        {% if not current_user %}
+          <p class="field-hint" style="text-align:center;margin-top:.6rem">
+            Vas a poder iniciar sesión o crear tu cuenta en el próximo paso. Tu carrito se conserva.
+          </p>
+        {% endif %}
+      </div>
+    </aside>
+  </div>
+
+  {% else %}
+  <div class="panel" style="margin:1.5rem 0 3rem">
+    <div class="empty-state">
+      <div class="empty-state__icon">🛒</div>
+      <h1 style="font-size:1.4rem">Tu carrito está vacío</h1>
+      <p>Todavía no agregaste productos. Explorá el catálogo y encontrá todo lo que necesitás para una limpieza impecable.</p>
+      <a class="btn btn--lg" href="{{ url_for('main.products') }}">Ver productos</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

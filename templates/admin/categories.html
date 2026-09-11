@@ -1,0 +1,99 @@
+{% extends "admin/base.html" %}
+{% block title %}Categorías · Administración{% endblock %}
+{% block heading %}Categorías{% endblock %}
+{% block subheading %}{{ categories | length }} categorías en el catálogo{% endblock %}
+
+{% block content %}
+<div class="admin-grid">
+  <section class="admin-card">
+    <div class="admin-card__head"><h2>Categorías existentes</h2></div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Categoría</th><th class="num">Productos</th><th class="num">Orden</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for category in categories %}
+            <tr>
+              <td>
+                <details>
+                  <summary style="cursor:pointer;font-weight:600">
+                    {{ category.icon }} {{ category.name }}
+                    <span class="admin-topbar__sub" style="font-weight:400"> · /{{ category.slug }}</span>
+                  </summary>
+                  <form method="post" action="{{ url_for('admin.category_edit', category_id=category.id) }}" style="margin-top:.75rem;max-width:460px">
+                    <div class="field">
+                      <label for="name-{{ category.id }}">Nombre</label>
+                      <input id="name-{{ category.id }}" name="name" value="{{ category.name }}" required minlength="3" maxlength="120">
+                    </div>
+                    <div class="field">
+                      <label for="desc-{{ category.id }}">Descripción</label>
+                      <textarea id="desc-{{ category.id }}" name="description" style="min-height:70px">{{ category.description or '' }}</textarea>
+                    </div>
+                    <div class="form-grid">
+                      <div class="field">
+                        <label for="icon-{{ category.id }}">Ícono (emoji)</label>
+                        <input id="icon-{{ category.id }}" name="icon" value="{{ category.icon or '' }}" maxlength="8">
+                      </div>
+                      <div class="field">
+                        <label for="pos-{{ category.id }}">Posición</label>
+                        <input id="pos-{{ category.id }}" type="number" name="position" value="{{ category.position }}" min="0">
+                      </div>
+                    </div>
+                    <button class="btn btn--sm" type="submit">Guardar cambios</button>
+                  </form>
+                </details>
+              </td>
+              <td class="num">
+                <a href="{{ url_for('admin.products', categoria=category.id) }}" style="font-weight:700;color:var(--brand-dark)">{{ category.products | length }}</a>
+              </td>
+              <td class="num">{{ category.position }}</td>
+              <td>
+                <div class="row-actions">
+                  <a class="btn btn--sm btn--ghost" href="{{ url_for('main.category', slug=category.slug) }}" target="_blank">👁</a>
+                  <form method="post" action="{{ url_for('admin.category_delete', category_id=category.id) }}"
+                        data-confirm="¿Eliminar la categoría «{{ category.name }}»?">
+                    <button class="btn btn--sm btn--danger" type="submit" {{ 'disabled' if category.products }}>Eliminar</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="admin-card">
+    <div class="admin-card__head"><h2>Nueva categoría</h2></div>
+    <div class="admin-card__body">
+      <form method="post" action="{{ url_for('admin.categories') }}">
+        <div class="field">
+          <label for="new-name">Nombre *</label>
+          <input id="new-name" name="name" required minlength="3" maxlength="120" placeholder="Ej: Limpieza de autos">
+        </div>
+        <div class="field">
+          <label for="new-desc">Descripción</label>
+          <textarea id="new-desc" name="description" placeholder="Breve texto que se muestra en la página de la categoría."></textarea>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="new-icon">Ícono (emoji)</label>
+            <input id="new-icon" name="icon" maxlength="8" placeholder="🚗">
+          </div>
+          <div class="field">
+            <label for="new-pos">Posición</label>
+            <input id="new-pos" type="number" name="position" value="99" min="0">
+          </div>
+        </div>
+        <button class="btn btn--block" type="submit">Crear categoría</button>
+      </form>
+
+      <div class="alert alert--info" style="margin-top:1rem">
+        Al crear la categoría se genera automáticamente su imagen de portada con el ícono elegido.
+        Una categoría con productos asociados no puede eliminarse: primero hay que mover esos productos.
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

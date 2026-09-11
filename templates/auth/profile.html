@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Mi perfil · {{ store.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="Ruta de navegación">
+    <a href="{{ url_for('main.index') }}">Inicio</a> <span>/</span>
+    <span aria-current="page">Mi cuenta</span>
+  </nav>
+
+  <div class="account-layout">
+    {% include "partials/account_nav.html" %}
+
+    <section>
+      <h1 style="font-size:1.5rem">Hola, {{ user.name.split()[0] }} 👋</h1>
+
+      <div class="stat-row">
+        <div class="stat-card"><span>Pedidos</span><strong>{{ total_orders }}</strong></div>
+        <div class="stat-card"><span>Total comprado</span><strong>{{ spent | price }}</strong></div>
+        <div class="stat-card"><span>Cliente desde</span><strong style="font-size:1.05rem">{{ user.created_at.strftime('%d/%m/%Y') }}</strong></div>
+      </div>
+
+      <div class="panel" style="margin-bottom:1.2rem">
+        <div class="panel__head"><h2 style="font-size:1.05rem;margin:0">Datos personales</h2></div>
+        <div class="panel__body">
+          <form method="post" action="{{ url_for('auth.update_profile') }}">
+            <div class="form-grid">
+              <div class="field">
+                <label for="name">Nombre y apellido</label>
+                <input id="name" name="name" value="{{ user.name }}" required minlength="3" maxlength="120">
+              </div>
+              <div class="field">
+                <label for="phone">Teléfono</label>
+                <input id="phone" type="tel" name="phone" value="{{ user.phone or '' }}" maxlength="40">
+              </div>
+              <div class="field col-full">
+                <label for="email">Email</label>
+                <input id="email" value="{{ user.email }}" disabled>
+                <span class="field-hint">El email no se puede modificar en esta demostración.</span>
+              </div>
+            </div>
+            <button class="btn" type="submit">Guardar cambios</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:1.2rem">
+        <div class="panel__head"><h2 style="font-size:1.05rem;margin:0">Cambiar contraseña</h2></div>
+        <div class="panel__body">
+          <form method="post" action="{{ url_for('auth.change_password') }}">
+            <div class="form-grid">
+              <div class="field col-full">
+                <label for="current_password">Contraseña actual</label>
+                <input id="current_password" type="password" name="current_password" required autocomplete="current-password">
+              </div>
+              <div class="field">
+                <label for="new_password">Nueva contraseña</label>
+                <input id="new_password" type="password" name="new_password" required minlength="8" autocomplete="new-password">
+              </div>
+              <div class="field">
+                <label for="confirm_password">Repetir nueva contraseña</label>
+                <input id="confirm_password" type="password" name="confirm_password" required minlength="8" autocomplete="new-password">
+              </div>
+            </div>
+            <button class="btn btn--ghost" type="submit">Actualizar contraseña</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__head">
+          <h2 style="font-size:1.05rem;margin:0">Últimos pedidos</h2>
+          <a href="{{ url_for('orders.my_orders') }}" style="font-size:.85rem;font-weight:600;color:var(--brand-dark)">Ver todos →</a>
+        </div>
+        {% if orders %}
+          <div class="table-wrap">
+            <table class="data">
+              <thead>
+                <tr><th>Pedido</th><th>Fecha</th><th>Estado</th><th class="num">Total</th><th></th></tr>
+              </thead>
+              <tbody>
+                {% for order in orders %}
+                  <tr>
+                    <td><strong>{{ order.number }}</strong></td>
+                    <td>{{ order.created_at.strftime('%d/%m/%Y') }}</td>
+                    <td><span class="status status--{{ order.status }}">{{ order.status_label }}</span></td>
+                    <td class="num"><strong>{{ order.total | price }}</strong></td>
+                    <td class="num"><a href="{{ url_for('orders.order_detail', number=order.number) }}" style="color:var(--brand-dark);font-weight:600">Ver</a></td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state" style="padding:2.2rem 1rem">
+            <div class="empty-state__icon">📦</div>
+            <h3>Sin pedidos todavía</h3>
+            <p>Cuando compres algo, vas a verlo acá.</p>
+            <a class="btn btn--sm" href="{{ url_for('main.products') }}">Ver productos</a>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Error del servidor · {{ store.name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="error-page">
+    <div class="error-page__code">500</div>
+    <h1>Algo salió mal de nuestro lado</h1>
+    <p style="color:var(--muted);max-width:48ch;margin-inline:auto">
+      Ya registramos el error. Probá de nuevo en unos minutos; si el problema continúa,
+      avisanos a {{ store.email }}.
+    </p>
+    <div style="margin-top:1.5rem">
+      <a class="btn btn--lg" href="{{ url_for('main.index') }}">Volver al inicio</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+  <div class="container">
+    <div class="hero__inner">
+      <div>
+        <span class="hero__eyebrow">✦ Nueva temporada de limpieza</span>
+        <h1>{{ store.tagline }}</h1>
+        <p>Más de {{ nav_categories | length }} categorías y cientos de productos para el hogar, la cocina, el baño y el uso profesional. Con envío en 24/48 h.</p>
+        <div class="hero__actions">
+          <a class="btn btn--lg" href="{{ url_for('main.products') }}">Ver productos</a>
+          <a class="btn btn--lg btn--outline" href="{{ url_for('main.products', oferta=1, orden='ofertas') }}">Ver ofertas</a>
+        </div>
+        <div class="hero__stats">
+          <div class="hero__stat"><strong>24/48 h</strong><span>Entrega en AMBA</span></div>
+          <div class="hero__stat"><strong>{{ store.free_shipping | price }}</strong><span>Envío gratis desde</span></div>
+          <div class="hero__stat"><strong>+14</strong><span>Marcas disponibles</span></div>
+        </div>
+      </div>
+      <div class="hero__art" aria-hidden="true">
+        <div class="bubble">🧼</div>
+      </div>
+    </div>
+
+    <div class="benefits">
+      <div class="benefit"><span class="benefit__icon">🚚</span><div><strong>Envío gratis</strong><span>Desde {{ store.free_shipping | price }}</span></div></div>
+      <div class="benefit"><span class="benefit__icon">🔒</span><div><strong>Compra protegida</strong><span>Devolución sin cargo</span></div></div>
+      <div class="benefit"><span class="benefit__icon">💳</span><div><strong>Todos los medios</strong><span>Tarjeta, transferencia o efectivo</span></div></div>
+      <div class="benefit"><span class="benefit__icon">📦</span><div><strong>Stock real</strong><span>Lo que ves, está disponible</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2>Comprá por categoría</h2>
+        <p>Todo lo que necesitás, ordenado por ambiente y tipo de producto.</p>
+      </div>
+      <a href="{{ url_for('main.products') }}">Ver catálogo completo →</a>
+    </div>
+    <div class="category-grid">
+      {% for item in categories %}
+        <a class="category-card" href="{{ url_for('main.category', slug=item.slug) }}">
+          <div class="category-card__img">
+            {% if item.image %}
+              <img src="{{ url_for('static', filename=item.image) }}" alt="{{ item.name }}" loading="lazy" width="400" height="300">
+            {% else %}
+              <span aria-hidden="true">{{ item.icon }}</span>
+            {% endif %}
+          </div>
+          <div class="category-card__body">
+            <strong>{{ item.name }}</strong>
+            <span>{{ item.product_count }} productos</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if offers %}
+<section class="section section--tinted">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2>🔥 Ofertas de la semana</h2>
+        <p>Descuentos reales sobre el precio de lista, mientras dure el stock.</p>
+      </div>
+      <a href="{{ url_for('main.products', oferta=1, orden='ofertas') }}">Ver todas las ofertas →</a>
+    </div>
+    <div class="product-grid product-grid--4">
+      {% for product in offers %}{% include "partials/product_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if featured %}
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2>Productos destacados</h2>
+        <p>Los favoritos de nuestros clientes, siempre en stock.</p>
+      </div>
+      <a href="{{ url_for('main.products') }}">Ver más →</a>
+    </div>
+    <div class="product-grid product-grid--4">
+      {% for product in featured %}{% include "partials/product_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section section--tinted">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2>Recién llegados</h2>
+        <p>Las últimas incorporaciones al catálogo.</p>
+      </div>
+      <a href="{{ url_for('main.products', orden='nuevos') }}">Ver novedades →</a>
+    </div>
+    <div class="product-grid product-grid--4">
+      {% for product in newest %}{% include "partials/product_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

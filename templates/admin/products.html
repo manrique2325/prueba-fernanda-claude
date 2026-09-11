@@ -1,0 +1,124 @@
+{% extends "admin/base.html" %}
+{% block title %}Productos · Administración{% endblock %}
+{% block heading %}Productos{% endblock %}
+{% block subheading %}{{ pagination.total }} producto{{ 's' if pagination.total != 1 }} en el catálogo{% endblock %}
+
+{% block topbar_actions %}
+  <a class="btn btn--sm" href="{{ url_for('admin.product_new') }}">+ Nuevo producto</a>
+{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+  <form method="get" action="{{ url_for('admin.products') }}">
+    <input type="search" name="q" value="{{ term }}" placeholder="Buscar por nombre, marca o SKU…">
+    <select name="categoria">
+      <option value="">Todas las categorías</option>
+      {% for category in categories %}
+        <option value="{{ category.id }}" {{ 'selected' if request.args.get('categoria') == category.id | string }}>{{ category.name }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn--sm" type="submit">Buscar</button>
+    {% if term or request.args.get('categoria') or request.args.get('stock') or request.args.get('estado') %}
+      <a class="btn btn--sm btn--ghost" href="{{ url_for('admin.products') }}">Limpiar</a>
+    {% endif %}
+  </form>
+
+  <div class="spacer"></div>
+  <div class="filter-tabs">
+    <a class="filter-tab {{ 'is-active' if not request.args.get('stock') and not request.args.get('estado') }}" href="{{ url_for('admin.products', q=term or None) }}">Todos</a>
+    <a class="filter-tab {{ 'is-active' if request.args.get('stock') == 'bajo' }}" href="{{ url_for('admin.products', stock='bajo', q=term or None) }}">Stock bajo</a>
+    <a class="filter-tab {{ 'is-active' if request.args.get('estado') == 'inactivos' }}" href="{{ url_for('admin.products', estado='inactivos', q=term or None) }}">Inactivos</a>
+  </div>
+</div>
+
+<div class="admin-card">
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Categoría</th>
+          <th class="num">Precio</th>
+          <th>Stock</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in products %}
+          <tr>
+            <td>
+              <div class="cell-product">
+                <img class="thumb" src="{{ url_for('static', filename=product.image) if product.image else url_for('static', filename='images/placeholder.svg') }}" alt="">
+                <div>
+                  <strong>{{ product.name }}</strong>
+                  <span>{{ product.brand }} · {{ product.sku }}{% if product.unit %} · {{ product.unit }}{% endif %}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              {{ product.category.name }}
+              {% if product.subcategory %}<div class="admin-topbar__sub">{{ product.subcategory }}</div>{% endif %}
+            </td>
+            <td class="num">
+              <strong>{{ product.price | price }}</strong>
+              {% if product.old_price %}<div class="admin-topbar__sub" style="text-decoration:line-through">{{ product.old_price | price }}</div>{% endif %}
+            </td>
+            <td>
+              <form class="inline-stock" method="post" action="{{ url_for('admin.product_stock', product_id=product.id) }}">
+                <label class="sr-only" for="stock-{{ product.id }}">Stock de {{ product.name }}</label>
+                <input id="stock-{{ product.id }}" type="number" name="stock" value="{{ product.stock }}" min="0" max="99999">
+                <button class="btn btn--sm btn--ghost" type="submit" title="Guardar stock">✓</button>
+              </form>
+              {% if product.stock == 0 %}
+                <span class="badge badge--danger" style="margin-top:.3rem">Agotado</span>
+              {% elif product.stock <= low_stock_threshold %}
+                <span class="badge badge--low" style="margin-top:.3rem">Stock bajo</span>
+              {% endif %}
+            </td>
+            <td>
+              <div style="display:flex;flex-direction:column;gap:.25rem;align-items:flex-start">
+                {% if product.active %}
+                  <span class="badge badge--ok">Activo</span>
+                {% else %}
+                  <span class="badge badge--out">Inactivo</span>
+                {% endif %}
+                {% if product.on_sale %}<span class="badge badge--sale">-{{ product.discount }}%</span>{% endif %}
+                {% if product.featured %}<span class="badge badge--featured">Destacado</span>{% endif %}
+              </div>
+            </td>
+            <td>
+              <div class="row-actions">
+                <a class="btn btn--sm btn--ghost" href="{{ url_for('main.product_detail', product_id=product.id) }}" target="_blank" title="Ver en la tienda">👁</a>
+                <form method="post" action="{{ url_for('admin.product_toggle_featured', product_id=product.id) }}">
+                  <button class="btn btn--sm btn--ghost" type="submit" title="{{ 'Quitar de destacados' if product.featured else 'Marcar como destacado' }}">★</button>
+                </form>
+                <a class="btn btn--sm btn--ghost" href="{{ url_for('admin.product_edit', product_id=product.id) }}">Editar</a>
+                <form method="post" action="{{ url_for('admin.product_delete', product_id=product.id) }}"
+                      data-confirm="¿Eliminar «{{ product.name }}»? Si tiene ventas asociadas se desactivará en lugar de borrarse.">
+                  <button class="btn btn--sm btn--danger" type="submit">Eliminar</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="6">
+              <div class="empty-state">
+                <div class="empty-state__icon">📦</div>
+                <h3>No hay productos que coincidan</h3>
+                <p>Probá con otro término de búsqueda o creá un producto nuevo.</p>
+                <a class="btn" href="{{ url_for('admin.product_new') }}">+ Nuevo producto</a>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagination.pages > 1 %}
+    <div class="admin-card__foot">{% include "partials/pagination.html" %}</div>
+  {% endif %}
+</div>
+{% endblock %}

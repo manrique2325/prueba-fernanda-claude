@@ -1,0 +1,171 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard · Administración{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+{% block subheading %}Resumen de la operación de {{ store.name }}{% endblock %}
+
+{% block topbar_actions %}
+  <a class="btn btn--sm" href="{{ url_for('admin.product_new') }}">+ Nuevo producto</a>
+{% endblock %}
+
+{% block content %}
+<div class="kpi-grid">
+  <div class="kpi kpi--ok">
+    <div class="kpi__icon">💰</div>
+    <div class="kpi__label">Ventas totales</div>
+    <div class="kpi__value">{{ stats.revenue | price }}</div>
+    <div class="kpi__hint">Ticket promedio {{ stats.avg_ticket | price }}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__icon">🧾</div>
+    <div class="kpi__label">Pedidos</div>
+    <div class="kpi__value">{{ stats.orders }}</div>
+    <div class="kpi__hint">{{ stats.pending }} pendiente{{ 's' if stats.pending != 1 }} de procesar</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__icon">👥</div>
+    <div class="kpi__label">Clientes</div>
+    <div class="kpi__value">{{ stats.users }}</div>
+    <div class="kpi__hint">Registrados en la tienda</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__icon">📦</div>
+    <div class="kpi__label">Productos activos</div>
+    <div class="kpi__value">{{ stats.products }}</div>
+    <div class="kpi__hint">En el catálogo público</div>
+  </div>
+  <div class="kpi kpi--danger">
+    <div class="kpi__icon">⚠️</div>
+    <div class="kpi__label">Sin stock</div>
+    <div class="kpi__value">{{ stats.out_of_stock }}</div>
+    <div class="kpi__hint"><a href="{{ url_for('admin.products', stock='bajo') }}" style="color:var(--brand-dark);font-weight:600">Ver productos a reponer →</a></div>
+  </div>
+</div>
+
+<div class="admin-grid">
+  <!-- ------------------------------------------------------- grafico -- -->
+  <section class="admin-card">
+    <div class="admin-card__head">
+      <h2>Ventas de los últimos 14 días</h2>
+      <span class="admin-topbar__sub">Pedidos no cancelados</span>
+    </div>
+    <div class="admin-card__body">
+      {% set max_value = (chart | map(attribute='value') | max) or 1 %}
+      <div class="chart">
+        {% for day in chart %}
+          <div class="chart__col" title="{{ day.label }}: {{ day.value | price }}">
+            <span class="chart__value">{% if day.value %}{{ (day.value / 1000) | round(1) }}k{% endif %}</span>
+            <div class="chart__bar" style="height: {{ ((day.value / max_value) * 100) | round(1) }}%"></div>
+            <span class="chart__label">{{ day.label }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- --------------------------------------------------- estados pedidos -- -->
+  <section class="admin-card">
+    <div class="admin-card__head"><h2>Pedidos por estado</h2></div>
+    <div class="admin-card__body">
+      {% set total_orders = status_counts.values() | sum %}
+      <div class="bar-list">
+        {% for status in statuses %}
+          {% set count = status_counts.get(status, 0) %}
+          <div class="bar-list__item">
+            <div class="bar-list__head">
+              <a href="{{ url_for('admin.orders', estado=status) }}"><span class="status status--{{ status }}">{{ status | capitalize }}</span></a>
+              <strong>{{ count }}</strong>
+            </div>
+            <div class="bar-list__track">
+              <div class="bar-list__fill" style="width: {{ ((count / (total_orders or 1)) * 100) | round(1) }}%"></div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="admin-grid" style="margin-top:1.25rem">
+  <!-- ---------------------------------------------------- ultimos pedidos -- -->
+  <section class="admin-card">
+    <div class="admin-card__head">
+      <h2>Últimos pedidos</h2>
+      <a href="{{ url_for('admin.orders') }}" style="font-size:.85rem;font-weight:600;color:var(--brand-dark)">Ver todos →</a>
+    </div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Pedido</th><th>Cliente</th><th>Fecha</th><th>Estado</th><th class="num">Total</th></tr></thead>
+        <tbody>
+          {% for order in recent_orders %}
+            <tr>
+              <td><a href="{{ url_for('admin.order_detail', order_id=order.id) }}" style="font-weight:700;color:var(--brand-dark)">{{ order.number }}</a></td>
+              <td>{{ order.customer_name }}</td>
+              <td>{{ order.created_at.strftime('%d/%m %H:%M') }}</td>
+              <td><span class="status status--{{ order.status }}">{{ order.status_label }}</span></td>
+              <td class="num"><strong>{{ order.total | price }}</strong></td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem">Todavía no hay pedidos.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------- stock bajo -- -->
+  <section class="admin-card">
+    <div class="admin-card__head">
+      <h2>Reponer stock</h2>
+      <a href="{{ url_for('admin.products', stock='bajo') }}" style="font-size:.85rem;font-weight:600;color:var(--brand-dark)">Ver todos →</a>
+    </div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Producto</th><th class="num">Stock</th><th></th></tr></thead>
+        <tbody>
+          {% for product in low_stock %}
+            <tr>
+              <td>
+                <div class="cell-product">
+                  <img class="thumb" src="{{ url_for('static', filename=product.image) if product.image else url_for('static', filename='images/placeholder.svg') }}" alt="">
+                  <div><strong>{{ product.name }}</strong><span>{{ product.brand }} · {{ product.sku }}</span></div>
+                </div>
+              </td>
+              <td class="num">
+                {% if product.stock == 0 %}
+                  <span class="badge badge--danger">Agotado</span>
+                {% else %}
+                  <span class="badge badge--low">{{ product.stock }} un.</span>
+                {% endif %}
+              </td>
+              <td class="num"><a class="btn btn--sm btn--ghost" href="{{ url_for('admin.product_edit', product_id=product.id) }}">Editar</a></td>
+            </tr>
+          {% else %}
+            <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:2rem">Todo el catálogo tiene stock suficiente. 🎉</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+{% if top_products %}
+<section class="admin-card" style="margin-top:1.25rem">
+  <div class="admin-card__head"><h2>Productos más vendidos</h2></div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>#</th><th>Producto</th><th class="num">Unidades</th><th class="num">Facturación</th></tr></thead>
+      <tbody>
+        {% for row in top_products %}
+          <tr>
+            <td style="width:40px;color:var(--muted);font-weight:700">{{ loop.index }}</td>
+            <td>{{ row[0] }}</td>
+            <td class="num"><strong>{{ row[1] }}</strong></td>
+            <td class="num">{{ row[2] | price }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

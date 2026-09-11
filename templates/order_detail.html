@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Pedido {{ order.number }} · {{ store.name }}{% endblock %}
+
+{% set flow = ['pendiente', 'confirmado', 'preparando', 'enviado', 'entregado'] %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="Ruta de navegación">
+    <a href="{{ url_for('main.index') }}">Inicio</a> <span>/</span>
+    <a href="{{ url_for('orders.my_orders') }}">Mis pedidos</a> <span>/</span>
+    <span aria-current="page">{{ order.number }}</span>
+  </nav>
+
+  <div class="account-layout">
+    {% include "partials/account_nav.html" %}
+
+    <section>
+      <div class="panel">
+        <div class="panel__head">
+          <div>
+            <h1 style="font-size:1.2rem;margin:0">Pedido {{ order.number }}</h1>
+            <span class="order-card__date">Realizado el {{ order.created_at.strftime('%d/%m/%Y a las %H:%M') }}</span>
+          </div>
+          <span class="status status--{{ order.status }}">{{ order.status_label }}</span>
+        </div>
+
+        <div class="panel__body">
+          {% if order.status != 'cancelado' %}
+            {% set current_index = flow.index(order.status) if order.status in flow else 0 %}
+            <div class="timeline">
+              {% for step in flow %}
+                <div class="timeline__step {{ 'is-done' if loop.index0 <= current_index }}">
+                  {{ step | capitalize }}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p style="color:var(--danger);font-weight:600">Este pedido fue cancelado. Si tenés dudas, escribinos a {{ store.email }}.</p>
+          {% endif %}
+
+          <div class="form-grid" style="gap:1rem;margin-top:1rem">
+            <div>
+              <h3 style="font-size:.95rem">Datos de envío</h3>
+              <p style="color:var(--ink-soft);font-size:.9rem">
+                {{ order.customer_name }}<br>
+                {{ order.full_address }}<br>
+                {{ order.customer_phone }} · {{ order.customer_email }}
+              </p>
+            </div>
+            <div>
+              <h3 style="font-size:.95rem">Pago</h3>
+              <p style="color:var(--ink-soft);font-size:.9rem">
+                {{ payment_methods.get(order.payment_method, order.payment_method) }}<br>
+                {{ order.total_units }} producto{{ 's' if order.total_units != 1 }}<br>
+                Total: <strong>{{ order.total | price }}</strong>
+              </p>
+            </div>
+          </div>
+
+          {% if order.notes %}
+            <p class="field-hint"><strong>Notas:</strong> {{ order.notes }}</p>
+          {% endif %}
+        </div>
+
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr>
+                <th colspan="2">Producto</th>
+                <th class="num">Precio</th>
+                <th class="num">Cant.</th>
+                <th class="num">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in order.items %}
+                <tr>
+                  <td style="width:60px">
+                    <img src="{{ url_for('static', filename=item.product_image) if item.product_image else url_for('static', filename='images/placeholder.svg') }}"
+                         alt="" width="46" height="46" style="object-fit:contain;background:var(--bg);border-radius:6px">
+                  </td>
+                  <td>
+                    {% if item.product_id and item.product %}
+                      <a href="{{ url_for('main.product_detail', product_id=item.product_id) }}" style="font-weight:600">{{ item.product_name }}</a>
+                    {% else %}
+                      <span style="font-weight:600">{{ item.product_name }}</span>
+                    {% endif %}
+                    <div class="order-card__date">SKU {{ item.product_sku }}</div>
+                  </td>
+                  <td class="num">{{ item.price | price }}</td>
+                  <td class="num">{{ item.quantity }}</td>
+                  <td class="num"><strong>{{ item.line_total | price }}</strong></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel__foot">
+          <div style="max-width:320px;margin-left:auto">
+            <div class="summary__row"><span>Subtotal</span><span>{{ order.subtotal | price }}</span></div>
+            {% if order.discount > 0 %}
+              <div class="summary__row summary__row--discount"><span>Descuentos</span><span>− {{ order.discount | price }}</span></div>
+            {% endif %}
+            <div class="summary__row">
+              <span>Envío</span>
+              <span>{% if order.shipping == 0 %}<strong style="color:var(--ok)">Gratis</strong>{% else %}{{ order.shipping | price }}{% endif %}</span>
+            </div>
+            <div class="summary__total"><span>Total</span><span>{{ order.total | price }}</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

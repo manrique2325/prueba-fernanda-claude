@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} · {{ product.brand }} · {{ store.name }}{% endblock %}
+{% block description %}{{ product.description[:150] }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="Ruta de navegación">
+    <a href="{{ url_for('main.index') }}">Inicio</a> <span>/</span>
+    <a href="{{ url_for('main.products') }}">Productos</a> <span>/</span>
+    <a href="{{ url_for('main.category', slug=product.category.slug) }}">{{ product.category.name }}</a> <span>/</span>
+    <span aria-current="page">{{ product.name }}</span>
+  </nav>
+
+  <div class="product-detail">
+    <!-- ------------------------------------------------------- galeria -- -->
+    <div class="product-gallery">
+      <div class="product-gallery__badges">
+        {% if product.on_sale and product.discount %}<span class="badge badge--sale">-{{ product.discount }}% OFF</span>{% endif %}
+        {% if product.is_new %}<span class="badge badge--new">Nuevo</span>{% endif %}
+        {% if product.featured %}<span class="badge badge--featured">Destacado</span>{% endif %}
+        {% if not product.in_stock %}<span class="badge badge--out">Sin stock</span>{% endif %}
+      </div>
+      <img src="{{ url_for('static', filename=product.image) if product.image else url_for('static', filename='images/placeholder.svg') }}"
+           alt="{{ product.name }}" width="440" height="440">
+    </div>
+
+    <!-- --------------------------------------------------- informacion -- -->
+    <div class="product-info">
+      <span class="product-info__brand">{{ product.brand }}</span>
+      <h1>{{ product.name }}</h1>
+
+      <div class="product-meta">
+        <span>SKU: <strong>{{ product.sku }}</strong></span>
+        <span>Categoría: <a href="{{ url_for('main.category', slug=product.category.slug) }}" style="color:var(--brand-dark);font-weight:600">{{ product.category.name }}</a></span>
+        {% if product.subcategory %}<span>{{ product.subcategory }}</span>{% endif %}
+        {% if product.unit %}<span>Presentación: <strong>{{ product.unit }}</strong></span>{% endif %}
+      </div>
+
+      <div class="product-price-box">
+        <div class="price">
+          <span class="price__now">{{ product.price | price }}</span>
+          {% if product.old_price %}<span class="price__old">{{ product.old_price | price }}</span>{% endif %}
+          {% if product.discount %}<span class="price__off">{{ product.discount }}% OFF</span>{% endif %}
+        </div>
+        {% if product.savings %}<div class="savings">Ahorrás {{ product.savings | price }}</div>{% endif %}
+
+        <div style="margin-top:.8rem">
+          {% if product.stock > 5 %}
+            <span class="stock-line stock-line--ok"><span class="dot"></span> En stock · {{ product.stock }} unidades disponibles</span>
+          {% elif product.stock > 0 %}
+            <span class="stock-line stock-line--low"><span class="dot"></span> ¡Últimas {{ product.stock }} unidades!</span>
+          {% else %}
+            <span class="stock-line stock-line--out"><span class="dot"></span> Sin stock por el momento</span>
+          {% endif %}
+        </div>
+
+        {% if product.in_stock %}
+          <form class="buy-row" action="{{ url_for('cart.add', product_id=product.id) }}" method="post" data-cart-add>
+            <div class="qty" data-qty>
+              <button type="button" data-step="-1" aria-label="Disminuir cantidad">−</button>
+              <label class="sr-only" for="quantity">Cantidad</label>
+              <input id="quantity" type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" inputmode="numeric">
+              <button type="button" data-step="1" aria-label="Aumentar cantidad">+</button>
+            </div>
+            <button class="btn btn--lg" type="submit" style="flex:1">🛒 Agregar al carrito</button>
+          </form>
+          <a class="btn btn--ghost btn--block" href="{{ url_for('cart.view') }}" style="margin-top:.6rem">Ir al carrito</a>
+        {% else %}
+          <button class="btn btn--lg btn--block is-disabled" disabled style="margin-top:1rem">Sin stock</button>
+          <p class="field-hint" style="text-align:center;margin-top:.5rem">Volvé a consultar en los próximos días.</p>
+        {% endif %}
+      </div>
+
+      <div class="shipping-note">
+        <span style="font-size:1.3rem">🚚</span>
+        <div>
+          <strong>Envío a todo el país.</strong> Gratis en compras superiores a {{ store.free_shipping | price }};
+          por debajo de ese monto el costo es de {{ store.shipping_cost | price }}.
+          Entrega estimada: 24 a 48 h hábiles en AMBA, 3 a 6 días en el interior.
+        </div>
+      </div>
+
+      <div class="product-section">
+        <h3>Descripción</h3>
+        <p style="color:var(--ink-soft)">{{ product.description }}</p>
+      </div>
+
+      <div class="product-section">
+        <h3>Características</h3>
+        <div class="spec-list">
+          <div><span class="k">Marca</span><span class="v">{{ product.brand }}</span></div>
+          <div><span class="k">Categoría</span><span class="v">{{ product.category.name }}</span></div>
+          {% if product.subcategory %}<div><span class="k">Tipo</span><span class="v">{{ product.subcategory }}</span></div>{% endif %}
+          {% if product.unit %}<div><span class="k">Contenido</span><span class="v">{{ product.unit }}</span></div>{% endif %}
+          <div><span class="k">SKU</span><span class="v">{{ product.sku }}</span></div>
+          <div><span class="k">Stock</span><span class="v">{{ product.stock }} un.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if related %}
+<section class="section section--tinted">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2>Productos relacionados</h2>
+        <p>Otros productos de {{ product.category.name | lower }} que podrían interesarte.</p>
+      </div>
+      <a href="{{ url_for('main.category', slug=product.category.slug) }}">Ver categoría →</a>
+    </div>
+    <div class="product-grid">
+      {% for product in related %}{% include "partials/product_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

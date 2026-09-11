@@ -1,0 +1,12 @@
+{# Navegacion lateral del panel del usuario #}
+<aside class="account-nav" aria-label="Mi cuenta">
+  <a href="{{ url_for('auth.profile') }}" class="{{ 'is-active' if request.endpoint == 'auth.profile' }}">👤 Mi perfil</a>
+  <a href="{{ url_for('orders.my_orders') }}" class="{{ 'is-active' if request.endpoint in ('orders.my_orders', 'orders.order_detail') }}">📦 Mis pedidos</a>
+  <a href="{{ url_for('cart.view') }}">🛒 Mi carrito</a>
+  {% if current_user and current_user.is_admin %}
+    <a href="{{ url_for('admin.dashboard') }}">⚙️ Panel admin</a>
+  {% endif %}
+  <form action="{{ url_for('auth.logout') }}" method="post" style="margin-top:.25rem">
+    <button class="btn btn--ghost btn--sm btn--block" type="submit">Cerrar sesión</button>
+  </form>
+</aside>

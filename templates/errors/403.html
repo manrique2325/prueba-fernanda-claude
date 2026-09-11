@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Acceso denegado · {{ store.name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="error-page">
+    <div class="error-page__code">403</div>
+    <h1>No tenés permiso para ver esta página</h1>
+    <p style="color:var(--muted);max-width:48ch;margin-inline:auto">
+      Esta sección es exclusiva del personal autorizado. Si creés que se trata de un error,
+      escribinos a {{ store.email }}.
+    </p>
+    <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-top:1.5rem">
+      <a class="btn btn--lg" href="{{ url_for('main.index') }}">Volver a la tienda</a>
+      {% if not current_user %}<a class="btn btn--lg btn--ghost" href="{{ url_for('auth.login') }}">Iniciar sesión</a>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

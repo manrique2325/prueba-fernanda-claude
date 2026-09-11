@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Pedido {{ order.number }} confirmado · {{ store.name }}{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-bottom:3rem">
+  <div class="panel" style="margin-top:1.5rem;max-width:820px;margin-inline:auto">
+    <div class="order-success">
+      <div class="order-success__icon">✓</div>
+      <h1>¡Gracias por tu compra!</h1>
+      <p style="color:var(--muted);max-width:52ch;margin-inline:auto">
+        Recibimos tu pedido y ya lo estamos procesando. Te enviamos el detalle por email a
+        <strong>{{ order.customer_email }}</strong>.
+      </p>
+      <p style="margin-top:1rem"><span class="order-number">{{ order.number }}</span></p>
+    </div>
+
+    <div class="panel__body" style="border-top:1px solid var(--line)">
+      <div class="steps" style="margin-bottom:1rem">
+        <span class="step is-done"><span class="step__num">✓</span> Carrito</span>
+        <span class="step__sep"></span>
+        <span class="step is-done"><span class="step__num">✓</span> Datos y envío</span>
+        <span class="step__sep"></span>
+        <span class="step is-active"><span class="step__num">3</span> Confirmación</span>
+      </div>
+
+      <div class="form-grid" style="gap:1rem">
+        <div>
+          <h3 style="font-size:.95rem">Envío a</h3>
+          <p style="color:var(--ink-soft);font-size:.9rem">
+            {{ order.customer_name }}<br>
+            {{ order.full_address }}<br>
+            {{ order.customer_phone }}
+          </p>
+        </div>
+        <div>
+          <h3 style="font-size:.95rem">Pago y estado</h3>
+          <p style="color:var(--ink-soft);font-size:.9rem">
+            {{ payment_methods.get(order.payment_method, order.payment_method) }}<br>
+            Estado: <span class="status status--{{ order.status }}">{{ order.status_label }}</span><br>
+            Fecha: {{ order.created_at.strftime('%d/%m/%Y %H:%M') }}
+          </p>
+        </div>
+      </div>
+
+      <h3 style="font-size:.95rem;margin-top:1rem">Productos</h3>
+      {% for item in order.items %}
+        <div class="mini-item">
+          <img src="{{ url_for('static', filename=item.product_image) if item.product_image else url_for('static', filename='images/placeholder.svg') }}" alt="" loading="lazy">
+          <div>
+            <div class="mini-item__name">{{ item.product_name }}</div>
+            <div class="mini-item__meta">{{ item.quantity }} × {{ item.price | price }} · SKU {{ item.product_sku }}</div>
+          </div>
+          <div class="mini-item__price">{{ item.line_total | price }}</div>
+        </div>
+      {% endfor %}
+
+      <div style="margin-top:1rem;border-top:1px solid var(--line);padding-top:.6rem;max-width:340px;margin-left:auto">
+        <div class="summary__row"><span>Subtotal</span><span>{{ order.subtotal | price }}</span></div>
+        {% if order.discount > 0 %}
+          <div class="summary__row summary__row--discount"><span>Descuentos</span><span>− {{ order.discount | price }}</span></div>
+        {% endif %}
+        <div class="summary__row">
+          <span>Envío</span>
+          <span>{% if order.shipping == 0 %}<strong style="color:var(--ok)">Gratis</strong>{% else %}{{ order.shipping | price }}{% endif %}</span>
+        </div>
+        <div class="summary__total"><span>Total</span><span>{{ order.total | price }}</span></div>
+      </div>
+    </div>
+
+    <div class="panel__foot" style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center">
+      <a class="btn" href="{{ url_for('orders.my_orders') }}">Ver mis pedidos</a>
+      <a class="btn btn--ghost" href="{{ url_for('main.products') }}">Seguir comprando</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

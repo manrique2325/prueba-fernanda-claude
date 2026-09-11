@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% set pages = {
+  'envios': {'title': 'Envíos y entregas', 'icon': '🚚'},
+  'contacto': {'title': 'Contacto', 'icon': '📞'},
+  'nosotros': {'title': 'Sobre nosotros', 'icon': '✦'}
+} %}
+{% set meta = pages.get(page, {'title': 'Ayuda', 'icon': 'ℹ️'}) %}
+
+{% block title %}{{ meta.title }} · {{ store.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="Ruta de navegación">
+    <a href="{{ url_for('main.index') }}">Inicio</a> <span>/</span>
+    <span aria-current="page">{{ meta.title }}</span>
+  </nav>
+
+  <div class="panel" style="max-width:820px;margin:1.5rem auto 3rem">
+    <div class="panel__body" style="padding:2rem">
+      <div style="font-size:2.4rem">{{ meta.icon }}</div>
+      <h1>{{ meta.title }}</h1>
+
+      {% if page == 'envios' %}
+        <p>Realizamos envíos a todo el país con seguimiento incluido.</p>
+        <div class="spec-list" style="margin:1.5rem 0">
+          <div><span class="k">AMBA</span><span class="v">24 a 48 h hábiles</span></div>
+          <div><span class="k">Interior del país</span><span class="v">3 a 6 días hábiles</span></div>
+          <div><span class="k">Costo de envío</span><span class="v">{{ store.shipping_cost | price }}</span></div>
+          <div><span class="k">Envío gratis desde</span><span class="v">{{ store.free_shipping | price }}</span></div>
+        </div>
+        <h3>¿Cómo sigo mi pedido?</h3>
+        <p>Desde <a href="{{ url_for('orders.my_orders') }}" style="color:var(--brand-dark);font-weight:600">Mis pedidos</a>
+           podés ver el estado actualizado de cada compra: pendiente, confirmado, preparando, enviado o entregado.</p>
+        <h3>Cambios y devoluciones</h3>
+        <p>Aceptamos devoluciones dentro de los 10 días de recibido el pedido, siempre que el producto
+           esté sin abrir y en su envase original.</p>
+
+      {% elif page == 'contacto' %}
+        <p>Escribinos y te respondemos dentro de las 24 h hábiles.</p>
+        <div class="spec-list" style="margin:1.5rem 0">
+          <div><span class="k">Email</span><span class="v">{{ store.email }}</span></div>
+          <div><span class="k">Teléfono</span><span class="v">{{ store.phone }}</span></div>
+          <div><span class="k">Dirección</span><span class="v">{{ store.address }}</span></div>
+          <div><span class="k">Horario</span><span class="v">Lun a Vie de 9 a 18 h</span></div>
+        </div>
+        <h3>Ventas mayoristas</h3>
+        <p>Si necesitás productos de la línea profesional en volumen, escribinos indicando tu CUIT
+           y te enviamos la lista de precios mayorista.</p>
+
+      {% else %}
+        <p>{{ store.name }} es una tienda especializada exclusivamente en productos de limpieza.
+           Trabajamos con {{ nav_categories | length }} categorías y más de 150 productos seleccionados
+           para el hogar, los comercios y la industria.</p>
+        <h3>Cómo trabajamos</h3>
+        <p>Mantenemos stock real: lo que ves publicado es lo que hay disponible en el depósito.
+           Cuando un producto se agota, deja de poder comprarse hasta que reponemos.</p>
+        <h3>Nota sobre esta tienda</h3>
+        <p style="color:var(--muted)">Este sitio es una demostración técnica. Las marcas, productos,
+           precios e imágenes son ficticios y fueron creados únicamente con fines de prueba.</p>
+      {% endif %}
+
+      <a class="btn" href="{{ url_for('main.products') }}" style="margin-top:1rem">Ver productos</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

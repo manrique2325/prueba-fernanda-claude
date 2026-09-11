@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Mis pedidos · {{ store.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="Ruta de navegación">
+    <a href="{{ url_for('main.index') }}">Inicio</a> <span>/</span>
+    <span aria-current="page">Mis pedidos</span>
+  </nav>
+
+  <div class="account-layout">
+    {% include "partials/account_nav.html" %}
+
+    <section>
+      <h1 style="font-size:1.5rem">Mis pedidos</h1>
+
+      {% if orders %}
+        {% for order in orders %}
+          <article class="order-card">
+            <div class="order-card__head">
+              <div>
+                <div class="order-card__num">{{ order.number }}</div>
+                <div class="order-card__date">{{ order.created_at.strftime('%d/%m/%Y %H:%M') }} · {{ order.total_units }} producto{{ 's' if order.total_units != 1 }}</div>
+              </div>
+              <span class="status status--{{ order.status }}">{{ order.status_label }}</span>
+            </div>
+            <div class="order-card__body">
+              <div class="order-thumbs">
+                {% for item in order.items[:5] %}
+                  <img src="{{ url_for('static', filename=item.product_image) if item.product_image else url_for('static', filename='images/placeholder.svg') }}"
+                       alt="{{ item.product_name }}" title="{{ item.product_name }}" loading="lazy">
+                {% endfor %}
+                {% if order.items | length > 5 %}<div class="more">+{{ order.items | length - 5 }}</div>{% endif %}
+              </div>
+              <div style="display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap">
+                <div style="text-align:right">
+                  <div class="order-card__date">Total</div>
+                  <strong style="font-size:1.15rem">{{ order.total | price }}</strong>
+                </div>
+                <a class="btn btn--sm btn--ghost" href="{{ url_for('orders.order_detail', number=order.number) }}">Ver detalle</a>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      {% else %}
+        <div class="panel">
+          <div class="empty-state">
+            <div class="empty-state__icon">📦</div>
+            <h2>Todavía no hiciste pedidos</h2>
+            <p>Cuando completes tu primera compra vas a poder seguir su estado desde acá.</p>
+            <a class="btn" href="{{ url_for('main.products') }}">Explorar productos</a>
+          </div>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Checkout · {{ store.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="Ruta de navegación">
+    <a href="{{ url_for('main.index') }}">Inicio</a> <span>/</span>
+    <a href="{{ url_for('cart.view') }}">Carrito</a> <span>/</span>
+    <span aria-current="page">Checkout</span>
+  </nav>
+
+  <div style="padding-top:1rem">
+    <h1>Finalizar compra</h1>
+    <div class="steps">
+      <span class="step is-done"><span class="step__num">✓</span> Carrito</span>
+      <span class="step__sep"></span>
+      <span class="step is-active"><span class="step__num">2</span> Datos y envío</span>
+      <span class="step__sep"></span>
+      <span class="step"><span class="step__num">3</span> Confirmación</span>
+    </div>
+  </div>
+
+  <form method="post" action="{{ url_for('orders.checkout') }}">
+    <div class="checkout-layout">
+      <div>
+        <section class="panel" style="margin-bottom:1.2rem">
+          <div class="panel__head"><h2 style="font-size:1.05rem;margin:0">1. Datos del cliente</h2></div>
+          <div class="panel__body">
+            <div class="form-grid">
+              <div class="field">
+                <label for="customer_name">Nombre y apellido *</label>
+                <input id="customer_name" name="customer_name" value="{{ form.customer_name }}" required maxlength="120">
+              </div>
+              <div class="field">
+                <label for="customer_email">Email *</label>
+                <input id="customer_email" type="email" name="customer_email" value="{{ form.customer_email }}" required maxlength="255">
+              </div>
+              <div class="field col-full">
+                <label for="customer_phone">Teléfono *</label>
+                <input id="customer_phone" type="tel" name="customer_phone" value="{{ form.customer_phone }}" required maxlength="40" placeholder="+54 11 5555-0000">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-bottom:1.2rem">
+          <div class="panel__head"><h2 style="font-size:1.05rem;margin:0">2. Dirección de envío</h2></div>
+          <div class="panel__body">
+            <div class="form-grid">
+              <div class="field">
+                <label for="address_street">Calle *</label>
+                <input id="address_street" name="address_street" value="{{ form.address_street }}" required maxlength="200">
+              </div>
+              <div class="field">
+                <label for="address_number">Número *</label>
+                <input id="address_number" name="address_number" value="{{ form.address_number }}" required maxlength="20">
+              </div>
+              <div class="field">
+                <label for="address_city">Ciudad *</label>
+                <input id="address_city" name="address_city" value="{{ form.address_city }}" required maxlength="120">
+              </div>
+              <div class="field">
+                <label for="address_state">Provincia *</label>
+                <input id="address_state" name="address_state" value="{{ form.address_state }}" required maxlength="120">
+              </div>
+              <div class="field">
+                <label for="address_zip">Código postal *</label>
+                <input id="address_zip" name="address_zip" value="{{ form.address_zip }}" required maxlength="20">
+              </div>
+              <div class="field col-full">
+                <label for="notes">Notas para la entrega (opcional)</label>
+                <textarea id="notes" name="notes" maxlength="500" placeholder="Timbre, piso, horario preferido…">{{ form.notes }}</textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel__head"><h2 style="font-size:1.05rem;margin:0">3. Método de pago</h2></div>
+          <div class="panel__body">
+            <div class="payment-options">
+              <label class="payment-option">
+                <input type="radio" name="payment_method" value="transferencia" {{ 'checked' if form.payment_method == 'transferencia' }}>
+                <span><strong>🏦 Transferencia bancaria</strong><span>Te enviamos los datos por email. 10% de descuento adicional en tu próxima compra.</span></span>
+              </label>
+              <label class="payment-option">
+                <input type="radio" name="payment_method" value="tarjeta" {{ 'checked' if form.payment_method == 'tarjeta' }}>
+                <span><strong>💳 Tarjeta de crédito o débito</strong><span>Hasta 3 cuotas sin interés. El pago se coordina al confirmar el pedido.</span></span>
+              </label>
+              <label class="payment-option">
+                <input type="radio" name="payment_method" value="efectivo" {{ 'checked' if form.payment_method == 'efectivo' }}>
+                <span><strong>💵 Efectivo al recibir</strong><span>Pagás al repartidor cuando recibís el pedido.</span></span>
+              </label>
+            </div>
+            <p class="field-hint" style="margin-top:1rem">
+              🔒 Tienda de demostración: no se procesan pagos reales ni se solicitan datos de tarjeta.
+            </p>
+          </div>
+        </section>
+      </div>
+
+      <!-- ------------------------------------------------------- resumen -- -->
+      <aside class="panel summary">
+        <div class="panel__head"><h2 style="font-size:1.05rem;margin:0">Tu pedido</h2></div>
+        <div class="panel__body">
+          {% for item in cart.items %}
+            <div class="mini-item">
+              <img src="{{ url_for('static', filename=item.product.image) if item.product.image else url_for('static', filename='images/placeholder.svg') }}" alt="" loading="lazy">
+              <div>
+                <div class="mini-item__name">{{ item.product.name }}</div>
+                <div class="mini-item__meta">{{ item.quantity }} × {{ item.product.price | price }}</div>
+              </div>
+              <div class="mini-item__price">{{ item.line_total | price }}</div>
+            </div>
+          {% endfor %}
+
+          <div style="margin-top:1rem;border-top:1px solid var(--line);padding-top:.6rem">
+            <div class="summary__row"><span>Subtotal</span><span>{{ summary.subtotal | price }}</span></div>
+            {% if summary.discount > 0 %}
+              <div class="summary__row summary__row--discount"><span>Descuentos</span><span>− {{ summary.discount | price }}</span></div>
+            {% endif %}
+            <div class="summary__row">
+              <span>Envío</span>
+              <span>{% if summary.free_shipping %}<strong style="color:var(--ok)">Gratis</strong>{% else %}{{ summary.shipping | price }}{% endif %}</span>
+            </div>
+            <div class="summary__total"><span>Total</span><span>{{ summary.total | price }}</span></div>
+          </div>
+
+          <button class="btn btn--lg btn--block" type="submit" style="margin-top:1rem">Confirmar pedido</button>
+          <a class="btn btn--link btn--block" href="{{ url_for('cart.view') }}" style="margin-top:.4rem">Volver al carrito</a>
+        </div>
+      </aside>
+    </div>
+  </form>
+</div>
+{% endblock %}

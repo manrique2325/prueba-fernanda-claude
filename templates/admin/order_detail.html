@@ -1,0 +1,111 @@
+{% extends "admin/base.html" %}
+{% block title %}Pedido {{ order.number }} · Administración{% endblock %}
+{% block heading %}Pedido {{ order.number }}{% endblock %}
+{% block subheading %}Realizado el {{ order.created_at.strftime('%d/%m/%Y a las %H:%M') }}{% endblock %}
+
+{% block topbar_actions %}
+  <a class="btn btn--sm btn--ghost" href="{{ url_for('admin.orders') }}">← Volver a pedidos</a>
+{% endblock %}
+
+{% block content %}
+<div class="admin-grid">
+  <section class="admin-card">
+    <div class="admin-card__head">
+      <h2>Productos del pedido</h2>
+      <span class="status status--{{ order.status }}">{{ order.status_label }}</span>
+    </div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th colspan="2">Producto</th><th class="num">Precio</th><th class="num">Cant.</th><th class="num">Subtotal</th></tr>
+        </thead>
+        <tbody>
+          {% for item in order.items %}
+            <tr>
+              <td style="width:60px">
+                <img class="thumb" src="{{ url_for('static', filename=item.product_image) if item.product_image else url_for('static', filename='images/placeholder.svg') }}" alt="">
+              </td>
+              <td>
+                {% if item.product %}
+                  <a href="{{ url_for('admin.product_edit', product_id=item.product_id) }}" style="font-weight:600">{{ item.product_name }}</a>
+                  <div class="admin-topbar__sub">SKU {{ item.product_sku }} · stock actual: {{ item.product.stock }}</div>
+                {% else %}
+                  <strong>{{ item.product_name }}</strong>
+                  <div class="admin-topbar__sub">SKU {{ item.product_sku }} · producto eliminado</div>
+                {% endif %}
+              </td>
+              <td class="num">{{ item.price | price }}</td>
+              <td class="num">{{ item.quantity }}</td>
+              <td class="num"><strong>{{ item.line_total | price }}</strong></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="admin-card__foot">
+      <div style="max-width:320px;margin-left:auto">
+        <div class="summary__row"><span>Subtotal</span><span>{{ order.subtotal | price }}</span></div>
+        {% if order.discount > 0 %}
+          <div class="summary__row summary__row--discount"><span>Descuentos</span><span>− {{ order.discount | price }}</span></div>
+        {% endif %}
+        <div class="summary__row">
+          <span>Envío</span>
+          <span>{% if order.shipping == 0 %}<strong style="color:var(--ok)">Gratis</strong>{% else %}{{ order.shipping | price }}{% endif %}</span>
+        </div>
+        <div class="summary__total"><span>Total</span><span>{{ order.total | price }}</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div>
+    <section class="admin-card" style="margin-bottom:1.25rem">
+      <div class="admin-card__head"><h3>Estado del pedido</h3></div>
+      <div class="admin-card__body">
+        <form method="post" action="{{ url_for('admin.order_status', order_id=order.id) }}">
+          <div class="field">
+            <label for="status">Cambiar estado</label>
+            <select id="status" name="status">
+              {% for item in statuses %}
+                <option value="{{ item }}" {{ 'selected' if order.status == item }}>{{ item | capitalize }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button class="btn btn--block" type="submit">Actualizar estado</button>
+        </form>
+        <p class="field-hint" style="margin-top:.75rem">
+          Cancelar el pedido devuelve el stock de cada producto. Última actualización:
+          {{ order.updated_at.strftime('%d/%m/%Y %H:%M') if order.updated_at else '—' }}.
+        </p>
+      </div>
+    </section>
+
+    <section class="admin-card" style="margin-bottom:1.25rem">
+      <div class="admin-card__head"><h3>Cliente</h3></div>
+      <div class="admin-card__body">
+        <div class="spec-list" style="grid-template-columns:1fr">
+          <div><span class="k">Nombre</span><span class="v">{{ order.customer_name }}</span></div>
+          <div><span class="k">Email</span><span class="v">{{ order.customer_email }}</span></div>
+          <div><span class="k">Teléfono</span><span class="v">{{ order.customer_phone or '—' }}</span></div>
+          <div><span class="k">Cuenta</span><span class="v">
+            {% if order.user %}<a href="{{ url_for('admin.users', q=order.user.email) }}" style="color:var(--brand-dark)">#{{ order.user.id }}</a>{% else %}—{% endif %}
+          </span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-card">
+      <div class="admin-card__head"><h3>Envío y pago</h3></div>
+      <div class="admin-card__body">
+        <div class="spec-list" style="grid-template-columns:1fr">
+          <div><span class="k">Dirección</span><span class="v">{{ order.full_address or '—' }}</span></div>
+          <div><span class="k">Pago</span><span class="v">{{ order.payment_method | capitalize }}</span></div>
+          <div><span class="k">Unidades</span><span class="v">{{ order.total_units }}</span></div>
+        </div>
+        {% if order.notes %}
+          <p class="field-hint" style="margin-top:.75rem"><strong>Notas del cliente:</strong> {{ order.notes }}</p>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

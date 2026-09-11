@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {%- if filters.q -%}Buscar "{{ filters.q }}" · {{ store.name }}
+  {%- elif category -%}{{ category.name }} · {{ store.name }}
+  {%- else -%}Todos los productos · {{ store.name }}{%- endif -%}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="Ruta de navegación">
+    <a href="{{ url_for('main.index') }}">Inicio</a> <span>/</span>
+    {% if category %}
+      <a href="{{ url_for('main.products') }}">Productos</a> <span>/</span>
+      <span aria-current="page">{{ category.name }}</span>
+    {% elif filters.q %}
+      <a href="{{ url_for('main.products') }}">Productos</a> <span>/</span>
+      <span aria-current="page">Resultados para "{{ filters.q }}"</span>
+    {% else %}
+      <span aria-current="page">Productos</span>
+    {% endif %}
+  </nav>
+
+  <div style="padding-top:1rem">
+    <h1>
+      {% if filters.q %}Resultados para "{{ filters.q }}"
+      {% elif category %}{{ category.name }}
+      {% else %}Todos los productos{% endif %}
+    </h1>
+    {% if category and category.description %}<p style="color:var(--muted);max-width:70ch">{{ category.description }}</p>{% endif %}
+  </div>
+</div>
+
+<div class="container">
+  <div class="catalog">
+    <div class="filters-backdrop" id="filters-backdrop" hidden></div>
+
+    <!-- ------------------------------------------------------- filtros -- -->
+    <aside class="filters" id="filters" aria-label="Filtros">
+      <form method="get" action="{{ url_for('main.products') }}" id="filters-form">
+        {% if filters.q %}<input type="hidden" name="q" value="{{ filters.q }}">{% endif %}
+        {% if filters.orden %}<input type="hidden" name="orden" value="{{ filters.orden }}">{% endif %}
+
+        <div class="panel__head" style="border:0;padding:0 0 .5rem">
+          <h3 style="font-size:1rem">Filtros</h3>
+          <button type="button" class="link-danger filters__close" data-filters-close style="display:none">Cerrar</button>
+        </div>
+
+        <div class="filters__group">
+          <h4>Categoría</h4>
+          <div class="filters__list">
+            <label class="check">
+              <input type="radio" name="categoria" value="" {{ 'checked' if not filters.categoria }} data-autosubmit>
+              Todas
+            </label>
+            {% for item in categories %}
+              <label class="check">
+                <input type="radio" name="categoria" value="{{ item.slug }}"
+                       {{ 'checked' if filters.categoria == item.slug }} data-autosubmit>
+                {{ item.name }}
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        {% if subcategories %}
+        <div class="filters__group">
+          <h4>Subcategoría</h4>
+          <div class="filters__list">
+            <label class="check">
+              <input type="radio" name="subcategoria" value="" {{ 'checked' if not filters.subcategoria }} data-autosubmit> Todas
+            </label>
+            {% for sub in subcategories %}
+              <label class="check">
+                <input type="radio" name="subcategoria" value="{{ sub }}"
+                       {{ 'checked' if filters.subcategoria == sub }} data-autosubmit> {{ sub }}
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="filters__group">
+          <h4>Marca</h4>
+          <div class="filters__list">
+            {% for brand in brands %}
+              <label class="check">
+                <input type="checkbox" name="marca" value="{{ brand }}"
+                       {{ 'checked' if brand in filters.marca }} data-autosubmit> {{ brand }}
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="filters__group">
+          <h4>Precio</h4>
+          <div class="price-range">
+            <input type="number" name="min" min="0" step="100" placeholder="{{ min_price | round | int }}"
+                   value="{{ filters.min if filters.min is not none else '' }}" aria-label="Precio mínimo">
+            <span style="color:var(--muted)">–</span>
+            <input type="number" name="max" min="0" step="100" placeholder="{{ max_price | round | int }}"
+                   value="{{ filters.max if filters.max is not none else '' }}" aria-label="Precio máximo">
+          </div>
+          <button class="btn btn--sm btn--ghost btn--block" type="submit" style="margin-top:.6rem">Aplicar precio</button>
+        </div>
+
+        <div class="filters__group">
+          <h4>Otros</h4>
+          <label class="check">
+            <input type="checkbox" name="oferta" value="1" {{ 'checked' if filters.oferta }} data-autosubmit>
+            Solo ofertas
+          </label>
+          <label class="check">
+            <input type="checkbox" name="stock" value="1" {{ 'checked' if filters.stock }} data-autosubmit>
+            Solo disponibles
+          </label>
+        </div>
+
+        <div class="filters__actions">
+          <button class="btn btn--block" type="submit">Aplicar filtros</button>
+          <a class="btn btn--ghost btn--block" href="{{ url_for('main.products', q=filters.q) if filters.q else url_for('main.products') }}">Limpiar todo</a>
+        </div>
+      </form>
+    </aside>
+
+    <!-- ------------------------------------------------------ resultados -- -->
+    <section>
+      <div class="catalog-toolbar">
+        <button class="btn btn--sm btn--ghost filters-toggle" type="button" data-filters-open>⚙ Filtros</button>
+        <span class="catalog-toolbar__count">
+          <strong>{{ pagination.total }}</strong> producto{{ 's' if pagination.total != 1 }}
+          {% if pagination.pages > 1 %} · página {{ pagination.page }} de {{ pagination.pages }}{% endif %}
+        </span>
+        <form method="get" style="display:flex;align-items:center;gap:.5rem">
+          {% for key, values in request_args.lists() %}
+            {% if key not in ('orden', 'page') %}
+              {% for value in values %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+            {% endif %}
+          {% endfor %}
+          {% if category and 'categoria' not in request_args %}
+            <input type="hidden" name="categoria" value="{{ category.slug }}">
+          {% endif %}
+          <label class="sr-only" for="orden">Ordenar por</label>
+          <select class="sort-select" name="orden" id="orden" data-autosubmit>
+            {% for value, label in SORT_OPTIONS.items() %}
+              <option value="{{ value }}" {{ 'selected' if filters.orden == value }}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+
+      {% set has_filters = filters.marca or filters.oferta or filters.stock or filters.min is not none or filters.max is not none or filters.subcategoria %}
+      {% if has_filters %}
+        <div class="active-filters">
+          {% for brand in filters.marca %}
+            <span class="chip">{{ brand }} <a href="{{ url_with(marca=filters.marca | reject('equalto', brand) | list or None, page=None) }}" aria-label="Quitar filtro">×</a></span>
+          {% endfor %}
+          {% if filters.subcategoria %}<span class="chip">{{ filters.subcategoria }} <a href="{{ url_with(subcategoria=None, page=None) }}">×</a></span>{% endif %}
+          {% if filters.oferta %}<span class="chip">Solo ofertas <a href="{{ url_with(oferta=None, page=None) }}">×</a></span>{% endif %}
+          {% if filters.stock %}<span class="chip">Solo disponibles <a href="{{ url_with(stock=None, page=None) }}">×</a></span>{% endif %}
+          {% if filters.min is not none %}<span class="chip">Desde {{ filters.min | price }} <a href="{{ url_with(min=None, page=None) }}">×</a></span>{% endif %}
+          {% if filters.max is not none %}<span class="chip">Hasta {{ filters.max | price }} <a href="{{ url_with(max=None, page=None) }}">×</a></span>{% endif %}
+        </div>
+      {% endif %}
+
+      {% if products %}
+        <div class="product-grid">
+          {% for product in products %}{% include "partials/product_card.html" %}{% endfor %}
+        </div>
+        {% include "partials/pagination.html" %}
+      {% else %}
+        <div class="panel">
+          <div class="empty-state">
+            <div class="empty-state__icon">🔍</div>
+            <h2>No encontramos productos</h2>
+            <p>
+              {% if filters.q %}
+                No hay resultados para "{{ filters.q }}". Probá con otras palabras, revisá la ortografía o mirá el catálogo completo.
+              {% else %}
+                Ningún producto coincide con los filtros seleccionados. Probá quitando alguno.
+              {% endif %}
+            </p>
+            <a class="btn" href="{{ url_for('main.products') }}">Ver todos los productos</a>
+          </div>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}
