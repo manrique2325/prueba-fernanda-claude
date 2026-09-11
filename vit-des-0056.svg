@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 440" width="440" height="440" role="img" aria-label="Desinfectante de superficies aerosol">
+  <rect width="440" height="440" fill="#eef1fb"/>
+  <circle cx="352" cy="88" r="66" fill="#6c63c7" opacity=".13"/>
+  <circle cx="78" cy="368" r="52" fill="#443c96" opacity=".10"/>
+  <ellipse cx="220" cy="374" rx="118" ry="16" fill="#443c96" opacity=".14"/>
+  <path d="M188 118h58v22h-58z" fill="#443c96"/>
+  <path d="M170 96h44v26h-44z" fill="#443c96" opacity=".85"/>
+  <rect x="176" y="132" width="88" height="24" rx="8" fill="#443c96"/>
+  <rect x="164" y="150" width="112" height="180" rx="26" fill="#6c63c7"/>
+  <rect x="180" y="196" width="80" height="76" rx="10" fill="#ffffff" opacity=".92"/>
+  <rect x="176" y="160" width="20" height="150" rx="10" fill="#ffffff" opacity=".22"/>
+  <text x="220" y="244" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#443c96">Desinfectante de</text>
+  <text x="220" y="264" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#443c96">superficies</text>
+  <text x="220" y="286" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" letter-spacing="1.6" fill="#6c63c7">VITALIX</text>
+</svg>

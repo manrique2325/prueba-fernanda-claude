@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 440" width="440" height="440" role="img" aria-label="Jabón en polvo Baja Espuma">
+  <rect width="440" height="440" fill="#fdf0ec"/>
+  <circle cx="352" cy="88" r="66" fill="#d8543f" opacity=".13"/>
+  <circle cx="78" cy="368" r="52" fill="#9c3524" opacity=".10"/>
+  <ellipse cx="220" cy="374" rx="118" ry="16" fill="#9c3524" opacity=".14"/>
+  <rect x="196" y="92" width="48" height="34" rx="8" fill="#9c3524"/>
+  <path d="M198 126h44l26 34v10h-96v-10z" fill="#9c3524" opacity=".85"/>
+  <rect x="150" y="168" width="140" height="176" rx="30" fill="#d8543f"/>
+  <rect x="172" y="212" width="96" height="82" rx="12" fill="#ffffff" opacity=".95"/>
+  <rect x="163" y="186" width="22" height="140" rx="11" fill="#ffffff" opacity=".22"/>
+  <text x="220" y="244" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#9c3524">Jabón en polvo</text>
+  <text x="220" y="264" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#9c3524">Baja Espuma</text>
+  <text x="220" y="286" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" letter-spacing="1.6" fill="#d8543f">RINDEX</text>
+</svg>
